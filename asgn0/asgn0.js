@@ -23,8 +23,7 @@ function drawVector(v, color) {
 }
 
 function main() {
-  const v1 = new Vector3([2.25, 2.25, 0]);
-  drawVector(v1, "red");
+  handleDrawEvent();
 }
 
 function handleDrawEvent() {
