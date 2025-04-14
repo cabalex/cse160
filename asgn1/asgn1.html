@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asgn1</title>
+  </head>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    main {
+      margin: 0 auto;
+      padding-top: 20px;
+      width: fit-content;
+    }
+    .window {
+      margin-bottom: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      border: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 400px;
+      background-color: #fff;
+    }
+    .window-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      background-color: #008cff;
+      color: white;
+      user-select: none;
+    }
+    .window-content {
+      overflow-y: auto;
+    }
+    .window-controls h3 {
+      margin: 0;
+      padding: 5px;
+      font-size: 1.2em;
+    }
+    .window-buttons {
+      display: flex;
+      align-items: center;
+    }
+    .window-buttons button {
+      background-color: transparent;
+      color: unset;
+      border: none;
+      padding: 5px 15px;
+      height: 100%;
+      cursor: pointer;
+      transition: background-color 0.1s ease;
+    }
+    .window-buttons button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    .window-buttons #close-btn:hover {
+      background-color: rgba(255, 0, 0, 1);
+    }
+    canvas {
+      border-top: 1px solid black;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+    }
+    .tabs {
+      display: flex;
+      gap: 1px;
+      background-color: #ccc;
+    }
+    .tabs > * {
+      padding: 2px 8px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    .tabs > .active {
+      background-color: #fff;
+    }
+    .tab-content {
+      padding: 5px;
+      height: 30px;
+      align-items: center;
+    }
+    #export,
+    #fun {
+      justify-content: space-between;
+      gap: 5px;
+    }
+    #shape > div {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    #shape label {
+      line-height: 0.8em;
+    }
+    .color {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+    }
+    .color input[type="color"] {
+      flex-shrink: 0;
+    }
+    .color input[type="range"] {
+      width: 100%;
+      min-width: 10px;
+      flex-shrink: 1;
+    }
+    #info-window {
+      max-height: calc(100vh - 600px);
+    }
+    button.active {
+      background-color: #ccc;
+    }
+  </style>
+  <body>
+    <main>
+      <div class="window" id="paint-window">
+        <div class="window-controls">
+          <h3>Assignment 1</h3>
+          <div class="window-buttons">
+            <button id="minimize-btn">_</button>
+            <button id="close-btn">X</button>
+          </div>
+        </div>
+        <div class="window-content">
+          <div class="controls">
+            <div class="tabs">
+              <button class="tab" id="tab-color">Color</button>
+              <button class="tab" id="tab-shape">Shapes</button>
+              <button class="tab" id="tab-export">Export & Reset</button>
+              <button class="tab" id="tab-fun">Fun</button>
+            </div>
+            <div id="color" class="tab-content color">
+              <input
+                type="color"
+                id="color-picker"
+                onchange="setColorFromPicker()"
+              />
+              <input
+                title="Red"
+                type="range"
+                value="0"
+                style="accent-color: red"
+                onchange="setColor()"
+                id="color-r"
+                min="0"
+                max="255"
+                step="1"
+              />
+              <input
+                title="Green"
+                type="range"
+                value="0"
+                style="accent-color: green"
+                onchange="setColor()"
+                id="color-g"
+                min="0"
+                max="255"
+                step="1"
+              />
+              <input
+                title="Blue"
+                type="range"
+                value="0"
+                onchange="setColor()"
+                id="color-b"
+                min="0"
+                max="255"
+                step="1"
+              />
+            </div>
+            <div id="shape" class="tab-content shape">
+              <button
+                id="shape-point"
+                class="shape-btn active"
+                onclick="setShapeType('point')"
+              >
+                🟥
+              </button>
+              <button
+                id="shape-triangle"
+                class="shape-btn"
+                onclick="setShapeType('triangle')"
+              >
+                🔺
+              </button>
+              <button
+                id="shape-circle"
+                class="shape-btn"
+                onclick="setShapeType('circle')"
+              >
+                🔴
+              </button>
+              <div>
+                <label for="shape-size">Size:</label>
+                <input
+                  type="range"
+                  value="10"
+                  id="shape-size"
+                  min="1"
+                  max="100"
+                  step="1"
+                  onchange="setShapeSize()"
+                />
+              </div>
+              <div id="circle-settings" style="display: none">
+                <label for="circle-resolution">Circle Resolution:</label>
+                <input
+                  type="range"
+                  value="10"
+                  id="circle-resolution"
+                  min="3"
+                  max="30"
+                  step="1"
+                  onchange="setCircleResolution()"
+                />
+              </div>
+            </div>
+            <div id="export" class="tab-content export">
+              <button id="export-btn">Export</button>
+              <div style="flex-grow: 1"></div>
+              <button id="rewind-btn">Hold to Rewind</button>
+              <button id="clear-btn">Clear</button>
+            </div>
+            <div id="fun" class="tab-content fun">
+              <select id="fun-type">
+                <option value="rainbow">Rainbow</option>
+                <option value="jitter">Shake</option>
+                <option value="bubble">Bubble</option>
+                <option value="wave">Wave</option>
+                <option value="lavalamp">Lava Lamp</option>
+              </select>
+              <div style="flex-grow: 1"></div>
+              <button id="fun-reset-btn">Reset transforms</button>
+              <button id="fun-btn">Start FUN</button>
+            </div>
+          </div>
+        </div>
+        <canvas id="webgl" width="400" height="400"></canvas>
+      </div>
+      <div class="window" id="info-window">
+        <div class="window-controls">
+          <h3>Info</h3>
+          <div class="window-buttons">
+            <button id="minimize-btn">_</button>
+            <button id="close-btn">X</button>
+          </div>
+        </div>
+        <div class="window-content" style="padding: 0 10px">
+          <p>
+            Click and drag to draw shapes. This project features all features in
+            Assignment 1, with the addition of:
+          </p>
+          <ul>
+            <li>
+              <b>Ghost preview:</b> Line up your shapes just right with a ghost
+              preview that appears when you hover over the canvas.
+            </li>
+            <li>
+              <b>Browser color picker:</b> Use the browser's color picker to
+              enter hex colors and more.
+            </li>
+            <li><b>Export:</b> Export your masterpiece as a PNG file.</li>
+            <li>
+              <b>Rewind:</b> Undo a mistake you made by holding the Rewind
+              button.
+            </li>
+            <li>
+              <b>FUN:</b> Use a variety of FUN features (<i
+                >Rainbow, Shake, Bubble, Wave, Lava Lamp</i
+              >) to twist your drawing in silly ways! Don't worry, you can
+              restore your original drawing at any time. <br /><br />
+              <i>Tip: try drawing on the canvas while FUN mode is activated!</i>
+            </li>
+          </ul>
+          <h2>Drawing</h2>
+          <button id="render-art-btn">Render the artwork on the canvas</button>
+          <p><i>(Hover over the canvas again to restore your drawing.)</i></p>
+          <img src="paint.png" width="100%" />
+        </div>
+      </div>
+    </main>
+    <script src="shapes.js"></script>
+    <script src="asgn1.js"></script>
+  </body>
+</html>
