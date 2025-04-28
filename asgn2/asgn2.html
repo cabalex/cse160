@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asgn2</title>
+  </head>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+    #view-window {
+      z-index: 1;
+    }
+    canvas {
+      cursor: grab;
+    }
+    canvas.dragging {
+      cursor: grabbing;
+    }
+  </style>
+  <body>
+    <main>
+      <div id="view-window">
+        <canvas id="webgl" width="800" height="800"></canvas>
+        <div class="controls">
+          <div>render time: <span id="render-time">0</span> ms</div>
+          <div class="option">
+            <label for="color">Rotation:</label>
+            <input
+              type="range"
+              id="rotation-x"
+              value="0"
+              min="-180"
+              max="180"
+            />
+            <input
+              type="range"
+              id="rotation-y"
+              value="0"
+              min="-180"
+              max="180"
+            />
+            <input
+              type="range"
+              id="rotation-z"
+              value="0"
+              min="-180"
+              max="180"
+            />
+          </div>
+          <div class="option">
+            <label for="neck">Neck:</label>
+            <input type="range" id="neck" value="0" min="-45" max="45" />
+          </div>
+          <div class="option">
+            <label for="leaf-stem">Leaf:</label>
+            <input type="range" id="leaf-stem" value="0" min="-45" max="45" />
+          </div>
+          <div class="option">
+            <label for="walking">Walking:</label>
+            <input type="checkbox" id="walking" checked="true" />
+          </div>
+        </div>
+      </div>
+      <h2>Red Pikmin</h2>
+      <p>
+        This red Pikmin walks! Poke him with shift click and watch him move.
+      </p>
+      <p>This Pikmin includes:</p>
+      <ul>
+        <li>
+          <b>Fourth level joints</b>: The root cube is the lower body, then the
+          neck, head, leaf stem, and leaf bud.
+        </li>
+        <li><b>Cone:</b> The nose and stem are cones!</li>
+        <li><b>Poke:</b> Though it might be a little mean...</li>
+        <li>
+          <b>Mouse control:</b> Click and drag to rotate through the scene.
+        </li>
+      </ul>
+    </main>
+    <script type="module" src="asgn2.js"></script>
+  </body>
+</html>
