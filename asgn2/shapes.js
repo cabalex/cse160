@@ -286,7 +286,7 @@ class Cube extends Shape3D {
     for (let i = 0; i < this.vertices.length; i += 18) {
       let currentFace = this.vertices.slice(i, i + 18);
       this._setupRendering(currentFace, gl, variables, globalRotateMatrix); // Set up rendering
-      gl.drawArrays(gl.TRIANGLES, 0, currentFace.length);
+      gl.drawArrays(gl.TRIANGLES, 0, currentFace.length / 3);
       // Set color for each face
       this.color = [
         this.color[0] - 0.1,
