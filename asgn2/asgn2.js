@@ -268,6 +268,240 @@ function renderScene(gl, variables) {
   renderTime.innerText = perfTime.toFixed(2);
 }
 
+function giveFriends() {
+  // HACK: I would've made a cloning function, but it kept breaking...
+  const root = getShape("root");
+  const newPikmin = new Cube({
+    name: "root",
+    origin: [0, 0, 0],
+    position: [0, -0.2, 0],
+    rotation: [0, 0, 0],
+    scale: [0.25, 0.3, 0.25],
+    color: [1, 0, 0, 1], // Red
+    children: [
+      new Cube({
+        name: "neck",
+        scale: [0.2, 0.25, 0.2],
+        position: [0, 0.35, 0],
+        origin: [0, -0.2, 0],
+        rotation: [0, 0, 0],
+        color: [0.9, 0, 0, 1],
+        children: [
+          new Cube({
+            name: "head",
+            scale: [0.35, 0.4, 0.35],
+            position: [0, 0.45, 0],
+            origin: [0, -0.3, 0],
+            rotation: [0, 0, 0],
+            color: [1, 0, 0, 1],
+            children: [
+              new Cone({
+                name: "nose",
+                origin: [0, 0, 0],
+                position: [0, 0.1, -0.2],
+                rotation: [-90, 0, 0],
+                scale: [0.1, 0.1, 0.1],
+                color: [1, 0, 0, 1],
+              }),
+              new Cone({
+                name: "leaf-stem",
+                origin: [0, -1, 0],
+                position: [0, 1.2, 0],
+                rotation: [0, 0, 0],
+                scale: [0.1, 0.3, 0.1],
+                color: [0, 0.6, 0, 1],
+                children: [
+                  new Cube({
+                    name: "leaf",
+                    origin: [0, 0, 0],
+                    position: [0, 0.5, 0],
+                    rotation: [0, 0, 0],
+                    scale: [0.2, 0.2, 0.2],
+                    color: [1, 1, 0.6, 1],
+                  }),
+                ],
+              }),
+              new Cube({
+                name: "left-eye",
+                scale: [0.1, 0.05, 0.05],
+                position: [-0.15, 0.2, -0.2],
+                rotation: [0, 0, 0],
+                color: [1, 1, 1, 1],
+                children: [
+                  new Cube({
+                    name: "left-eye-pupil",
+                    scale: [0.05, 0.04, 0.05],
+                    position: [0, 0, -0.005],
+                    rotation: [0, 0, 0],
+                    color: [0, 0, 0, 1],
+                  }),
+                ],
+              }),
+              new Cube({
+                name: "right-eye",
+                scale: [0.1, 0.05, 0.05],
+                position: [0.15, 0.2, -0.2],
+                rotation: [0, 0, 0],
+                color: [1, 1, 1, 1],
+                children: [
+                  new Cube({
+                    name: "right-eye-pupil",
+                    scale: [0.05, 0.04, 0.05],
+                    position: [0, 0, -0.005],
+                    rotation: [0, 0, 0],
+                    color: [0, 0, 0, 1],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+      new Cube({
+        name: "left-arm",
+        scale: [0.05, 0.2, 0.05],
+        position: [-0.1, -0.15, 0],
+        origin: [0, 0.3, 0],
+        rotation: [0, 0, -35],
+        color: [0.8, 0, 0, 1],
+        children: [
+          new Cube({
+            name: "left-hand",
+            scale: [0.07, 0.07, 0.07],
+            position: [-0.0, -0.45, 0],
+            origin: [0, 0.3, 0],
+            rotation: [0, 0, 0],
+            color: [0.9, 0, 0, 1],
+          }),
+        ],
+      }),
+      new Cube({
+        name: "right-arm",
+        scale: [0.05, 0.2, 0.05],
+        position: [0.1, -0.15, 0],
+        origin: [0, 0.3, 0],
+        rotation: [0, 0, 35],
+        color: [0.8, 0, 0, 1],
+        children: [
+          new Cube({
+            name: "right-hand",
+            scale: [0.07, 0.07, 0.07],
+            position: [0.0, -0.45, 0],
+            origin: [0, 0.3, 0],
+            rotation: [0, 0, 0],
+            color: [0.9, 0, 0, 1],
+          }),
+        ],
+      }),
+      new Cube({
+        name: "left-leg",
+        scale: [0.05, 0.2, 0.05],
+        position: [-0.07, -0.4, 0],
+        origin: [0, 0.3, 0],
+        rotation: [0, 0, 0],
+        color: [0.7, 0, 0, 1],
+      }),
+      new Cube({
+        name: "right-leg",
+        scale: [0.05, 0.2, 0.05],
+        position: [0.07, -0.4, 0],
+        origin: [0, 0.3, 0],
+        rotation: [0, 0, 0],
+        color: [0.7, 0, 0, 1],
+      }),
+    ],
+  });
+  newPikmin.name = "friend" + shapes.length;
+  newPikmin.setPosition([
+    Math.random() * shapes.length - shapes.length / 2,
+    -0.2,
+    Math.random() * shapes.length - shapes.length / 2,
+  ]); // Random position
+  shapes.push(newPikmin);
+  globalScale = 1 / (shapes.length / 2);
+  setGlobalRotation(...globalRotation);
+}
+
+function animate(time, root) {
+  // update animations
+  if (currentAnimation === "walk") {
+    let upperRotation = Math.sin(time * 15) * 5 - 2;
+    root.setPosition([
+      root.position[0],
+      -0.2 + Math.sin(time * 15) * 0.03,
+      root.position[2],
+    ]);
+    getShape("left-leg", root.children).setRotation([
+      Math.sin(time * 10) * 60 - 7,
+      0,
+      0,
+    ]);
+    getShape("right-leg", root.children).setRotation([
+      Math.sin(time * 10 + 3) * 60 - 7,
+      0,
+      0,
+    ]);
+    getShape("left-arm", root.children).setRotation([
+      Math.sin(time * 10) * 80,
+      0,
+      -35,
+    ]);
+    getShape("right-arm", root.children).setRotation([
+      Math.sin(time * 10 + 3) * 80,
+      0,
+      35,
+    ]);
+    getShape("neck", root.children).setRotation([
+      -upperRotation + neckRotation,
+      0,
+      0,
+    ]);
+    getShape("head", root.children).setRotation([-upperRotation, 0, 0]);
+    getShape("leaf-stem", root.children).setRotation([
+      Math.sin(time * 15 + 3) * 20 + leafStemRotation,
+      0,
+      0,
+    ]);
+    getShape("leaf", root.children).setRotation([
+      Math.sin(time * 15 + 3) * 20 + leafStemRotation,
+      0,
+      0,
+    ]);
+    getShape("left-eye-pupil", root.children).setScale([0.05, 0.04, 0.05]);
+    getShape("right-eye-pupil", root.children).setScale([0.05, 0.04, 0.05]);
+  } else if (currentAnimation === "poke") {
+    // Poke animation - 500 ms
+    let upperRotation = Math.sin(time * 6 + 3.14) * -25;
+    getShape("left-arm", root.children).setRotation([
+      upperRotation,
+      0,
+      -upperRotation * 5,
+    ]);
+    getShape("right-arm", root.children).setRotation([
+      upperRotation,
+      0,
+      upperRotation * 5,
+    ]);
+    getShape("left-leg", root.children).setRotation([0, 0, 0]);
+    getShape("right-leg", root.children).setRotation([0, 0, 0]);
+    getShape("neck", root.children).setRotation([upperRotation, 0, 0]);
+    getShape("head", root.children).setRotation([upperRotation, 0, 0]);
+    getShape("left-eye-pupil", root.children).setScale([0.02, 0.01, 0.05]);
+    getShape("right-eye-pupil", root.children).setScale([0.02, 0.01, 0.05]);
+  } else if (currentAnimation === "idle") {
+    // Idle animation - 500 ms
+    getShape("left-arm", root.children).setRotation([0, 0, -35]);
+    getShape("right-arm", root.children).setRotation([0, 0, 35]);
+    getShape("left-leg", root.children).setRotation([0, 0, 0]);
+    getShape("right-leg", root.children).setRotation([0, 0, 0]);
+    getShape("neck", root.children).setRotation([neckRotation, 0, 0]);
+    getShape("head", root.children).setRotation([0, 0, 0]);
+    getShape("left-eye-pupil", root.children).setScale([0.05, 0.04, 0.05]);
+    getShape("right-eye-pupil", root.children).setScale([0.05, 0.04, 0.05]);
+    getShape("leaf-stem", root.children).setRotation([leafStemRotation, 0, 0]);
+  }
+}
+
 let time = 0;
 let lastTime = performance.now(); // Initialize lastTime
 let currentAnimation = "walk";
@@ -276,50 +510,8 @@ function tick(gl, variables) {
   time += (newTime - lastTime) / 1000; // Update time
   lastTime = newTime; // Update lastTime
 
-  // update animations
-  if (currentAnimation === "walk") {
-    let upperRotation = Math.sin(time * 15) * 5 - 2;
-    getShape("root").setPosition([0, -0.2 + Math.sin(time * 15) * 0.03, 0]);
-    getShape("left-leg").setRotation([Math.sin(time * 10) * 60 - 7, 0, 0]);
-    getShape("right-leg").setRotation([Math.sin(time * 10 + 3) * 60 - 7, 0, 0]);
-    getShape("left-arm").setRotation([Math.sin(time * 10) * 80, 0, -35]);
-    getShape("right-arm").setRotation([Math.sin(time * 10 + 3) * 80, 0, 35]);
-    getShape("neck").setRotation([-upperRotation + neckRotation, 0, 0]);
-    getShape("head").setRotation([-upperRotation, 0, 0]);
-    getShape("leaf-stem").setRotation([
-      Math.sin(time * 15 + 3) * 20 + leafStemRotation,
-      0,
-      0,
-    ]);
-    getShape("leaf").setRotation([
-      Math.sin(time * 15 + 3) * 20 + leafStemRotation,
-      0,
-      0,
-    ]);
-    getShape("left-eye-pupil").setScale([0.05, 0.04, 0.05]);
-    getShape("right-eye-pupil").setScale([0.05, 0.04, 0.05]);
-  } else if (currentAnimation === "poke") {
-    // Poke animation - 500 ms
-    let upperRotation = Math.sin(time * 6 + 3.14) * -25;
-    getShape("left-arm").setRotation([upperRotation, 0, -upperRotation * 5]);
-    getShape("right-arm").setRotation([upperRotation, 0, upperRotation * 5]);
-    getShape("left-leg").setRotation([0, 0, 0]);
-    getShape("right-leg").setRotation([0, 0, 0]);
-    getShape("neck").setRotation([upperRotation, 0, 0]);
-    getShape("head").setRotation([upperRotation, 0, 0]);
-    getShape("left-eye-pupil").setScale([0.02, 0.01, 0.05]);
-    getShape("right-eye-pupil").setScale([0.02, 0.01, 0.05]);
-  } else if (currentAnimation === "idle") {
-    // Idle animation - 500 ms
-    getShape("left-arm").setRotation([0, 0, -35]);
-    getShape("right-arm").setRotation([0, 0, 35]);
-    getShape("left-leg").setRotation([0, 0, 0]);
-    getShape("right-leg").setRotation([0, 0, 0]);
-    getShape("neck").setRotation([neckRotation, 0, 0]);
-    getShape("head").setRotation([0, 0, 0]);
-    getShape("left-eye-pupil").setScale([0.05, 0.04, 0.05]);
-    getShape("right-eye-pupil").setScale([0.05, 0.04, 0.05]);
-    getShape("leaf-stem").setRotation([leafStemRotation, 0, 0]);
+  for (let shape of shapes) {
+    animate(time, shape);
   }
 
   renderScene(gl, variables); // Render the scene
@@ -374,6 +566,7 @@ function click(gl, variables, ev) {
 }
 
 let globalRotation = [0, 0, 0]; // Global rotation angles
+let globalScale = 1;
 function setGlobalRotation(x, y, z) {
   globalRotation[0] = x;
   globalRotation[1] = y;
@@ -382,6 +575,7 @@ function setGlobalRotation(x, y, z) {
   globalRotateMatrix.setRotate(x, 1, 0, 0); // Rotate around x-axis
   globalRotateMatrix.rotate(y, 0, 1, 0); // Rotate around y-axis
   globalRotateMatrix.rotate(z, 0, 0, 1); // Rotate around z-axis
+  globalRotateMatrix.scale(globalScale, globalScale, globalScale); // Scale
 }
 
 let neckRotation = 0;
@@ -439,6 +633,19 @@ function main() {
     } else if (walkingEnabled && currentAnimation === "idle") {
       currentAnimation = "walk";
     }
+  });
+
+  const giveFriendsButton = document.getElementById("give-friends");
+  const removeFriendsButton = document.getElementById("remove-friends");
+  giveFriendsButton.addEventListener("click", function () {
+    giveFriends();
+    removeFriendsButton.style.display = "block"; // Show the remove friends button
+  });
+  removeFriendsButton.addEventListener("click", function () {
+    shapes = shapes.filter((shape) => shape.name === "root"); // Keep only the root shape
+    removeFriendsButton.style.display = "none"; // Hide the remove friends button
+    globalScale = 1;
+    setGlobalRotation(...globalRotation);
   });
 
   tick(gl, variables);

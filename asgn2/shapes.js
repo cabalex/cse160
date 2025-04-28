@@ -275,8 +275,8 @@ function getCubeVertices() {
 class Cube extends Shape3D {
   constructor(options) {
     super({
-      vertices: getCubeVertices(),
       ...options,
+      vertices: getCubeVertices(),
     });
     this.type = "cube";
   }
@@ -329,8 +329,8 @@ function getConeVertices() {
 class Cone extends Shape3D {
   constructor(options) {
     super({
-      vertices: getConeVertices(),
       ...options,
+      vertices: getConeVertices(),
     });
     this.type = "cone";
   }
