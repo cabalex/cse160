@@ -141,25 +141,33 @@
       <div id="menu-inner">
         <h1 style="text-align: center">SPLUNK</h1>
         <div class="description">
-          <p>Use the mouse or Q/E to control the camera.</p>
+          <p>
+            Use the mouse or Q/E to control the camera, and WASD to move. Hold
+            SHIFT to run.<br />
+            <i style="font-size: 0.75em"
+              >Pro tip: you can crawl into one block holes!</i
+            >
+          </p>
           <p>Left click to mine, right click to place scaffolding.</p>
           <p>
             Mining ores gives you points! Earn enough points to upgrade your
-            pickaxe (press G) and mine more ores.
+            pickaxe (press G) and mine more ores. You'll find rarer ores the
+            deeper you go!
           </p>
           <p>Press 'ESC' to unlock your cursor.</p>
           <p>How deep can you go?</p>
           <h2>Grader's notes</h2>
+          <i>
+            Note: This version has been updated post-submission to include
+            additional performance enhancements and minor bug fixes. (Please see
+            the submission for the original version.)
+          </i>
           <p>This project features all of the required features, plus:</p>
           <ul>
             <li>
               <b>Rendering optimizations:</b> all blocks are compiled into a
-              single draw call, and only the vertices that are exposed to the
-              outside are rendered, making for fast performance!
-              <i
-                >(Note: the framerate is capped at ~30 FPS, but can render up to
-                200+ FPS on my computer uncapped.)</i
-              >
+              single draw call, and only the vertices that are exposed are
+              rendered, making for fast performance!
             </li>
             <li>
               <b>Infinte generation:</b> the world is procedurally generated

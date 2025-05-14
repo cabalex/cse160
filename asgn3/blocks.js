@@ -267,12 +267,12 @@ const BLOCK_TABLE = {
   },
   redstone_ore: {
     uvs: [{ x: 3, y: 3, side: "all" }],
-    score: 1200,
+    score: 1500,
     mineDuration: 5000,
   },
   diamond_ore: {
     uvs: [{ x: 2, y: 3, side: "all" }],
-    score: 2000,
+    score: 3000,
     mineDuration: 6000,
   },
   // Breaking textures
@@ -432,14 +432,16 @@ class BlockHandler {
     this.gl = gl;
     this.variables = variables;
     this.camera = camera;
+    // indexed by y, then x,z
     this.blocks = new Map();
     this.setupSky();
     this.loadTerrainTexture();
 
     // compiled blocks
-    this.compiled = false;
+    this.staleChunks = new Set();
     this.compiledY = 0;
     this.compiledObject = new Shape3D();
+    this.compiledChunks = new Map();
 
     // mining breaking preview
     this.mining = false;
@@ -462,6 +464,7 @@ class BlockHandler {
     this.selected = false;
 
     this.chunkSize = 32;
+    this.chunkWidth = 16;
     this.generateDepth = 0;
     this.score = 0;
     this.compileBlocks();
@@ -482,14 +485,41 @@ class BlockHandler {
     }
   }
 
+  _getChunkNo(y) {
+    return Math.round(y / this.chunkSize);
+  }
+
+  get compiled() {
+    return this.staleChunks.size === 0;
+  }
+
   addBlock(name, position) {
-    this.blocks.set(position.join(","), new Block(this, { name, position }));
-    this.compiled = false;
+    if (!this.blocks.has(position[1])) {
+      this.blocks.set(position[1], new Map());
+    }
+    this.blocks
+      .get(position[1])
+      .set(
+        Math.round(position[0]) + "," + Math.round(position[2]),
+        new Block(this, { name, position })
+      );
+
+    // Mark chunks as stale - if above/below are in a different chunk, mark those too
+    this.staleChunks.add(this._getChunkNo(position[1]));
+    this.staleChunks.add(this._getChunkNo(position[1] + 1));
+    this.staleChunks.add(this._getChunkNo(position[1] - 1));
   }
 
   removeBlock(position) {
-    this.blocks.delete(position.join(","));
-    this.compiled = false;
+    this.blocks.get(position[1])?.delete(position[0] + "," + position[2]);
+    if (this.blocks.get(position[1])?.size === 0) {
+      this.blocks.delete(position[1]);
+    }
+
+    // Mark chunks as stale - if above/below are in a different chunk, mark those too
+    this.staleChunks.add(this._getChunkNo(position[1]));
+    this.staleChunks.add(this._getChunkNo(position[1] + 1));
+    this.staleChunks.add(this._getChunkNo(position[1] - 1));
   }
 
   raycast(p, rotation, returnSurface = false, maxSteps = 50) {
@@ -553,12 +583,27 @@ class BlockHandler {
   }
 
   getBlockAt(x, y, z) {
-    if (x > 16 || x < -16 || z > 16 || z < -16) {
+    if (
+      x > this.chunkWidth ||
+      x < -this.chunkWidth ||
+      z > this.chunkWidth ||
+      z < -this.chunkWidth
+    ) {
       return { name: "wall", position: [x, y, z], vertices: [] }; // Out of bounds
     }
-    return this.blocks.get(
-      `${Math.round(x)},${Math.round(y)},${Math.round(z)}`
-    );
+    const b = this.blocks.get(Math.round(y));
+    return b?.get(Math.round(x) + "," + Math.round(z));
+  }
+
+  *blockIterator(yMin, yMax) {
+    for (let y = yMin; y <= yMax; y++) {
+      const b = this.blocks.get(y);
+      if (b) {
+        for (const block of b.values()) {
+          yield block;
+        }
+      }
+    }
   }
 
   isBlockVisible(x, y, z) {
@@ -610,24 +655,38 @@ class BlockHandler {
     image.src = "textures/terrain.png";
   }
 
-  deleteBlocksAbove(y) {
-    console.log("Deleting blocks above Y:", y);
+  deleteChunksAbove(chunkNo) {
+    console.log("Deleting chunks above:", chunkNo);
+    const chunksToDelete = [];
+    for (const chunk of this.staleChunks) {
+      if (chunk > chunkNo) {
+        chunksToDelete.push(chunk);
+      }
+    }
+    for (const chunk of chunksToDelete) {
+      this.staleChunks.delete(chunk);
+    }
     for (const [key, block] of this.blocks) {
-      if (block.position[1] > y) {
+      if (this._getChunkNo(key) > chunkNo) {
         this.blocks.delete(key);
       }
     }
   }
 
   compileBlocks(compiledY = 0) {
-    const vertices = [];
+    const vertices = new Map();
     console.log("Compiling blocks for chunk Y:", compiledY);
 
     if (this.generateDepth + this.chunkSize > compiledY * this.chunkSize) {
       console.log("Generating new chunk");
-      generateMap(this, -this.generateDepth, 16, this.chunkSize / 2);
+      generateMap(
+        this,
+        -this.generateDepth,
+        this.chunkWidth,
+        this.chunkSize / 2
+      );
       this.generateDepth -= this.chunkSize;
-      this.deleteBlocksAbove(this.generateDepth + 64);
+      this.deleteChunksAbove(this._getChunkNo(this.generateDepth + 64));
 
       if (compiledY === 0) {
         // new render - snap to y
@@ -637,39 +696,56 @@ class BlockHandler {
       }
     }
 
-    for (let block of this.blocks.values()) {
-      if (
-        Math.abs(compiledY - Math.round(block.position[1] / this.chunkSize)) > 3
-      ) {
+    for (let [key, b] of this.blocks.entries()) {
+      const chunkNo = this._getChunkNo(key);
+      if (!this.staleChunks.has(chunkNo)) {
         continue;
       }
+      if (vertices.get(chunkNo) === undefined) {
+        vertices.set(chunkNo, []);
+      }
       // for each side, check if the block is visible
-      const [x, y, z] = block.position;
-      const neighbors = [
-        [x, y, z + 1],
-        [x - 1, y, z],
-        [x + 1, y, z],
-        [x, y + 1, z],
-        [x, y, z - 1],
-        [x, y - 1, z],
-      ];
-      for (let i = 0; i < neighbors.length; i++) {
-        if (!this.getBlockAt(...neighbors[i])) {
-          let selection = block.vertices.slice(i * 5 * 6, (i + 1) * 5 * 6);
-          vertices.push(
-            ...selection.map((v, i) => {
-              if (i % 5 < 3) {
-                return v + block.position[i % 5];
-              } else {
-                return v;
-              }
-            })
-          );
+      for (let block of b.values()) {
+        const [x, y, z] = block.position;
+        const neighbors = [
+          [x, y, z + 1],
+          [x - 1, y, z],
+          [x + 1, y, z],
+          [x, y + 1, z],
+          [x, y, z - 1],
+          [x, y - 1, z],
+        ];
+        for (let i = 0; i < neighbors.length; i++) {
+          if (!this.getBlockAt(...neighbors[i])) {
+            let selection = block.vertices.slice(i * 5 * 6, (i + 1) * 5 * 6);
+            vertices.get(chunkNo).push(
+              ...selection.map((v, i) => {
+                if (i % 5 < 3) {
+                  return v + block.position[i % 5];
+                } else {
+                  return v;
+                }
+              })
+            );
+          }
         }
       }
     }
-    this.compiledObject.vertices = new Float32Array(vertices);
-    this.compiled = true;
+    for (let [key, verts] of vertices.entries()) {
+      if (verts.length > 0) {
+        this.compiledChunks.set(key, new Float32Array(verts));
+      }
+    }
+    this.staleChunks.clear();
+
+    // set compiled object vertices to the three closest chunks
+    const compiledVertices = [
+      ...(this.compiledChunks.get(compiledY - 1) ?? []),
+      ...(this.compiledChunks.get(compiledY) ?? []),
+      ...(this.compiledChunks.get(compiledY + 1) ?? []),
+    ];
+
+    this.compiledObject.vertices = new Float32Array(compiledVertices);
     this.compiledY = compiledY;
   }
 

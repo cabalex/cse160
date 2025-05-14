@@ -158,8 +158,8 @@ function renderScene(gl, variables, delta) {
   const camY = camera.position.elements[1];
   if (camY < 0 && camY > -10) {
     const factor = 1 - camY / -10;
-    const fogNear = 30 * factor + 5;
-    const fogFar = 50 * factor + 10;
+    const fogNear = 20 * factor + 5;
+    const fogFar = 15 * factor + 15;
     gl.uniform4fv(variables.u_FogColor, [
       0.5 * factor,
       0.5 * factor,
@@ -175,7 +175,7 @@ function renderScene(gl, variables, delta) {
   } else {
     gl.uniform4fv(variables.u_FogColor, [0.0, 0.0, 0.0, 1.0]);
     gl.uniform1f(variables.u_FogNear, 5);
-    gl.uniform1f(variables.u_FogFar, 10);
+    gl.uniform1f(variables.u_FogFar, 15);
   }
 
   const perfEnd = performance.now(); // End performance measurement
@@ -190,11 +190,10 @@ function tick(gl, variables) {
   let newTime = performance.now();
   let delta = newTime - lastTime;
   time += delta / 1000;
-  if (delta < 30) return;
   lastTime = newTime; // Update lastTime
 
   let renderedDelta = delta;
-  if (delta > 1000) {
+  if (delta > 100) {
     renderedDelta = 0;
   }
   renderScene(gl, variables, renderedDelta); // Render the scene

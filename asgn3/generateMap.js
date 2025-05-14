@@ -65,11 +65,19 @@ function placeIfThreshold(
   let n = fn(x, y, z, scale);
   if (y > fadeInAfterY) return;
   if (y < fadeInAfterYEnd) {
-    n *= Math.sin(((y - fadeInAfterY) / Math.abs(fadeInAfterYEnd)) * Math.PI);
+    n *= Math.sin(
+      ((y - fadeInAfterY) / (fadeInAfterYEnd - fadeInAfterY)) * Math.PI
+    );
   }
   if (n > threshold) {
     blocks.addBlock(block, [x, y, z]);
   }
+}
+
+// Linearly interpolate between a and b using y_min and y_max
+function lerp(a, b, y_min, y_max, y) {
+  const t = Math.min(1, (y - y_min) / (y_max - y_min));
+  return a + (b - a) * t;
 }
 
 function* blockIterator(width, height, offsetY) {
@@ -109,9 +117,12 @@ export default function generateMap(
         block: "grass",
       },
     ]);
-    const above5 = [...blocks.blocks.values()].filter(
-      (block) => block.position[1] > -5
-    );
+    const above5 = [];
+    for (let [key, value] of blocks.blocks.entries()) {
+      if (key > -5) {
+        above5.push(...value.values());
+      }
+    }
     for (const block of above5) {
       if (
         blocks.getBlockAt(
@@ -141,13 +152,51 @@ export default function generateMap(
     }
   }
   // Add ores
-  for (const [x, y, z] of blockIterator(width, height, offsetY)) {
-    if (!blocks.getBlockAt(x, y, z) || y > -5) {
+  for (const block of blocks.blockIterator(-offsetY - height * 2, -offsetY)) {
+    if (block.position[1] > -5) {
       continue;
     }
-    place(x, y, z, "coal_ore", 0.5, 5);
-    place(x, y, z, "iron_ore", 0.65, 10, -50, -100);
-    place(x, y, z, "gold_ore", 0.7, 20, -200, -250);
-    place(x, y, z, "diamond_ore", 0.8, 18, -500, -550);
+    place(
+      ...block.position,
+      "dirt",
+      lerp(0.3, 0.7, -5, -500, block.position[1]),
+      lerp(0.2, 4, -5, -100, block.position[1])
+    );
+    place(
+      ...block.position,
+      "cobblestone",
+      lerp(0.7, 0.3, -5, -500, block.position[1]),
+      lerp(5, 0.1, -5, -100, block.position[1])
+    );
+    place(
+      ...block.position,
+      "coal_ore",
+      lerp(0.7, 0.5, -5, -500, block.position[1]), // rate: lerp from 0.7 to 0.5 between -5 and -500
+      lerp(20, 10, -5, -100, block.position[1]) // scale: lerp from 20 to 8 between -5 and -100
+    );
+    place(
+      ...block.position,
+      "iron_ore",
+      lerp(0.9, 0.6, -50, -250, block.position[1]),
+      lerp(40, 10, -5, -100, block.position[1]),
+      -50,
+      -100
+    );
+    place(
+      ...block.position,
+      "gold_ore",
+      lerp(0.9, 0.7, -200, -300, block.position[1]),
+      lerp(10, 20, -200, -400, block.position[1]),
+      -200,
+      -250
+    );
+    place(
+      ...block.position,
+      "diamond_ore",
+      lerp(0.9, 0.75, -300, -550, block.position[1]),
+      lerp(40, 18, -300, -600, block.position[1]),
+      -300,
+      -350
+    );
   }
 }

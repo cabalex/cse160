@@ -202,7 +202,8 @@ export class PlayerCamera extends Camera {
     super(width, height);
     this.velocity = new Vector3([0, 0, 0]);
     this.moveUp(5);
-    this.terminalVelocity = 1;
+    this.terminalVelocity = 0.5;
+    this.isJumping = false;
     this.bodySize = 0.25; // size of the player
   }
 
@@ -365,6 +366,10 @@ export class PlayerCamera extends Camera {
   jump() {
     if (this.velocity.elements[1] === 0) {
       this.velocity.elements[1] = 0.25; // set jump velocity
+      this.isJumping = true;
+      setTimeout(() => {
+        this.isJumping = false;
+      }, 100);
     }
   }
 
@@ -392,11 +397,10 @@ export class PlayerCamera extends Camera {
 
   tick(delta, blocks) {
     this.moveDown(this.velocity.elements[1] * delta * 0.05);
-
     // check for collisions
     let blockBelow = this.collisionCheckVertical(blocks, "down");
 
-    if (blockBelow) {
+    if (blockBelow && !this.isJumping) {
       //blockBelow.color = [0.5, 0, 0, 1];
       this.velocity.elements[1] = 0; // stop vertical movement
       this.moveUp(blockBelow.position[1] - this.position.elements[1] + 1); // move up to block
