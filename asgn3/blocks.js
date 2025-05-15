@@ -773,7 +773,7 @@ class BlockHandler {
       // set preview
       const miningState = Math.floor(
         ((performance.now() - this.miningStart) /
-          (this.miningBlock.mineDuration / this.miningSpeed)) *
+          Math.max(100, this.miningBlock.mineDuration / this.miningSpeed)) *
           10
       );
       if (miningState > 9) {
@@ -793,7 +793,11 @@ class BlockHandler {
                   this.miningBlock.position[1] + j,
                   this.miningBlock.position[2] + k
                 );
-                if (block) {
+                if (
+                  block &&
+                  block.name !== "wall" &&
+                  block.name !== "bedrock"
+                ) {
                   this.removeBlock(block.position);
                   this.score += block.score;
                 }
