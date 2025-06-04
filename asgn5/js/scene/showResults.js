@@ -13,14 +13,17 @@ const COMMENTS = {
     "It's okay... but could use a bit more cooking.",
     "You might need a bit more spin in your cooking technique.",
     "This is almost there, but still a bit undercooked.",
+    "Try covering more sides of the steak to cook it evenly.",
   ],
   medium: [
-    "This is cooked well enough, I guess.",
-    "It's good, but a little dry. Needs more seasoning.",
+    "This is cooked pretty well... on average.",
+    "This could be a great steak, but it's a bit inconsistent.",
+    "It's almost perfect... but try cooking all of the sides next time.",
   ],
   medium_well: [
     "This is cooked well, but it's a bit dry.",
     "It's almost perfect, but a bit overcooked.",
+    "It's pretty dry. Might be good with sauce, I guess.",
   ],
   burnt: [
     "This is burnt! I can't eat this.",
