@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d";
-import Steak from "./objects/steak.js";
+import Steak from "./objects/Steak.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import constructScene from "./scene/constructScene.js";
 import animateScene from "./scene/animateScene.js";
