@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asgn5</title>
+    <script src="https://mrdoob.github.io/stats.js/build/stats.min.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.177.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.177.0/examples/jsm/",
+          "@dimforge/rapier3d": "https://cdn.skypack.dev/@dimforge/rapier3d-compat"
+        }
+      }
+    </script>
+  </head>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background-color: black;
+    }
+    #title {
+      position: fixed;
+      bottom: 32px;
+      left: 10px;
+      width: 100%;
+      color: white;
+      font-family: Arial, sans-serif;
+      z-index: 10;
+    }
+    #title h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    #title p {
+      font-size: 12px;
+      margin: 0;
+    }
+    #readme {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      z-index: 100;
+    }
+    #readme-inner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 600px;
+      background-color: #da8300;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      font-family: Arial, sans-serif;
+    }
+    #cook-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+    }
+    #cook-bar-progress {
+      position: absolute;
+      left: 0;
+      width: 0;
+      height: 100%;
+      background-color: #4caf50;
+      transition: width 0.01s ease-in-out, background-color 0.1s ease-in-out;
+    }
+    #cook-bar-progress.cooking {
+      background-color: #ff9800;
+    }
+    #cook-bar-progress.burning {
+      background-color: #f44336;
+    }
+    #cook-bar-text {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      margin-left: 10px;
+      font-weight: bold;
+    }
+    #high-score {
+      position: fixed;
+      top: 0;
+      right: 0;
+      text-align: right;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+    }
+    #results {
+      position: fixed;
+      right: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 20%;
+      padding: 10px;
+      border-radius: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      animation: slide-in 0.5s ease-out;
+    }
+    @keyframes slide-in {
+      from {
+        right: -100%;
+      }
+      to {
+        right: 0;
+      }
+    }
+    #result-score-wrapper {
+      text-align: center;
+      font-size: 24px;
+    }
+    #result-score {
+      font-size: 48px;
+    }
+    /* Cube in CSS */
+    .cube-scene {
+      width: 200px;
+      height: 200px;
+      margin: 0;
+      perspective: 600px;
+      transform: scale(0.5);
+    }
+    .cube {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: spin 5s infinite linear;
+    }
+    @keyframes spin {
+      from {
+        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateX(-100px);
+      }
+      to {
+        transform: rotateX(0deg) rotateY(360deg) rotateZ(0deg)
+          translateX(-100px);
+      }
+    }
+    .cube > img {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+    }
+    .cube > img:nth-child(1) {
+      transform: rotateY(0deg) translateZ(100px);
+    }
+    .cube > img:nth-child(2) {
+      transform: rotateY(90deg) translateZ(100px);
+    }
+    .cube > img:nth-child(3) {
+      transform: rotateY(180deg) translateZ(100px);
+    }
+    .cube > img:nth-child(4) {
+      transform: rotateY(-90deg) translateZ(100px);
+    }
+    .cube > img:nth-child(5) {
+      transform: rotateX(90deg) translateZ(100px);
+    }
+    .cube > img:nth-child(6) {
+      transform: rotateX(-90deg) translateZ(100px);
+    }
+  </style>
+  <body>
+    <!--
+      Attributions
+      Restaurant Bits by Kay Lousberg via Poly Pizza
+    -->
+    <div id="title">
+      <h1>Cubic Cook-Off</h1>
+      <p>
+        Move mouse to move pan - Click and drag to "pan" around - cook your cube
+        steak to perfection!
+      </p>
+      <p>
+        Chuck your steak off the pan to get get it appraised. Aim for a perfect
+        steak!
+      </p>
+      <i style="font-size: 10px; color: #ccc"
+        >100% Cooking may not be the best strategy...</i
+      >
+      <button
+        onclick="document.getElementById('readme').style.display = 'block'"
+      >
+        Notes for graders
+      </button>
+    </div>
+    <div id="readme" style="display: none" onclick="this.style.display='none'">
+      <div id="readme-inner" onclick="event.stopPropagation()">
+        <h1>Cubic Cook-Off</h1>
+        <p>A completely normal game about cooking steak.</p>
+        <h2>Grader's notes</h2>
+        <p>
+          This submission fulfills all requirements (including the 20 primary
+          shapes requirement, through the use of many 3D models and primitive
+          set dressing). There are four lights in this scene - can you spot them
+          all?
+        </p>
+        <p>Additionally, this game has:</p>
+        <ul>
+          <li>
+            <b>Fully functioning physics</b>: rapier3d makes it all possible!
+            <i
+              >I was originally going to use
+              <a href="https://github.com/pmndrs/cannon-es">cannon-es</a>, but
+              it's too simple for this project (trimeshes can only collide with
+              spheres in that library).</i
+            >
+          </li>
+          <li>
+            <b>Dynamically changing graphics:</b> The cube visually changes as
+            you cook each side, thanks to <code>CanvasTexture</code>s built into
+            THREE.js.
+          </li>
+          <li>
+            <b>Smoking effects,</b> using <code>PointGeometry</code> - don't
+            cook each side too long!
+          </li>
+        </ul>
+        <h2>Attributions</h2>
+        <ul>
+          <li>
+            Most of the assets are from
+            <a href="https://poly.pizza/bundle/Restaurant-Bits-ejkcnWf78Q">
+              Restaurant Bits by Kay Lousberg </a
+            >. The pan is originally from that pack as well, though I have
+            heavily modified it to work better with the gameplay.
+          </li>
+          <li>
+            Steak texture from
+            <a
+              href="https://www.freepik.com/free-photo/pink-shiny-textured-paper-background_18092472.htm"
+              >rawpixel.com via FreePik</a
+            >
+          </li>
+          <li>Skybox from Astral Chain</li>
+          <li>
+            Libraries used:
+            <a href="https://threejs.org/">THREE.js</a> (graphics),
+            <a
+              href="https://rapier.rs/docs/user_guides/javascript/getting_started_js"
+              >rapier3d</a
+            >
+            (physics)
+          </li>
+        </ul>
+        <h3>(click outside to close)</h3>
+      </div>
+    </div>
+    <div id="cook-bar">
+      <div id="cook-bar-progress"></div>
+      <div id="cook-bar-text">
+        Cooking... <span id="cook-bar-label">0%</span>
+      </div>
+    </div>
+    <div id="high-score">
+      <span style="font-size: 12px; color: #ccc">H I G H S C O R E</span>
+      <div id="high-score-value">$0.00</div>
+    </div>
+    <div id="results" style="display: none">
+      <span style="font-size: 12px; color: #ccc">J U D G E M E N T</span>
+      <div class="cube-scene">
+        <div id="cube" class="cube"></div>
+      </div>
+      <h2 id="result-title">Pretty Good I Guess</h2>
+      <p id="result-body">You didn't burn it.</p>
+      <div style="flex-grow: 1"></div>
+      <p id="result-score-wrapper">
+        Sold for: <span id="result-score">$0.00</span>
+      </p>
+    </div>
+
+    <script type="module" src="./js/asgn5.js"></script>
+  </body>
+</html>
