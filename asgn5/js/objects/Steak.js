@@ -4,6 +4,12 @@ import RAPIER from "@dimforge/rapier3d";
 const image = new Image();
 image.src = "assets/images/meat.jpg";
 
+function interp(min, max, value) {
+  // Given value between min and max, return the interpolated value [0-1]
+  let v = Math.min(Math.max(value, min), max);
+  return (v - min) / (max - min);
+}
+
 const normals = [
   new THREE.Vector3(1, 0, 0), // right
   new THREE.Vector3(-1, 0, 0), // left
@@ -41,10 +47,14 @@ export default class Steak extends THREE.Object3D {
         normalMap: new THREE.TextureLoader().load(
           "assets/images/meat_normal.jpg"
         ),
+        normalScale: new THREE.Vector2(5, 5),
         bumpMap: new THREE.TextureLoader().load(
           "assets/images/meat_specular.jpg"
         ),
-        roughness: 0.5,
+        aoMap: new THREE.TextureLoader().load(
+          "assets/images/meat_specular.jpg"
+        ),
+        roughness: 1,
         metalness: 0,
       });
       this.materials.push(material);
@@ -65,7 +75,12 @@ export default class Steak extends THREE.Object3D {
     if (!image.complete) {
       image.onload = () => {
         this.canvases.forEach((ctx) => {
+          ctx.globalCompositeOperation = "source-over";
           ctx.drawImage(image, 0, 0, ctx.canvas.width, ctx.canvas.height);
+          const [operation, fillStyle] = this._getColor(0);
+          ctx.globalCompositeOperation = operation;
+          ctx.fillStyle = fillStyle;
+          ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         });
         this.materials.forEach((material) => {
           material.map.needsUpdate = true; // Update the texture
@@ -85,6 +100,30 @@ export default class Steak extends THREE.Object3D {
       0
     );
     return totalCooked / (this.maxCooking * this.cooked.length);
+  }
+
+  _getColor(percent) {
+    if (percent < 0.5) {
+      // additive instead
+      let v = interp(0, 0.5, percent);
+      const red = Math.floor(128 * (1 - v));
+      const green = Math.floor(64 * (1 - v));
+      const blue = Math.floor(64 * (1 - v));
+      return ["lighten", `rgb(${red}, ${green}, ${blue})`];
+    } else if (percent <= 1) {
+      let v = interp(0.5, 1, percent);
+      const red = Math.floor(128 * (1 - v) + 128);
+      const green = Math.floor(192 * (1 - v) + 64);
+      const blue = Math.floor(192 * (1 - v) + 64);
+      return ["multiply", `rgb(${red}, ${green}, ${blue})`];
+    } else {
+      // progressively get burnt
+      let v = interp(1, 2, percent);
+      const red = Math.floor(126 * (1 - v) + 2);
+      const green = Math.floor(64 * (1 - v));
+      const blue = Math.floor(64 * (1 - v));
+      return ["multiply", `rgb(${red}, ${green}, ${blue})`];
+    }
   }
 
   update() {
@@ -125,10 +164,9 @@ export default class Steak extends THREE.Object3D {
     ctx.drawImage(image, 0, 0, ctx.canvas.width, ctx.canvas.height);
     // tint the image based on cooking value
     const tint = Math.min(2, this.cooked[cookingIndex] / this.maxCooking);
-    ctx.globalCompositeOperation = "multiply"; // Apply tint
-    ctx.fillStyle = `rgb(${230 * (2 - tint) + 25}, ${128 * (2 - tint)}, ${
-      128 * (2 - tint)
-    })`; // Red tint for cooking
+    const [operation, fillStyle] = this._getColor(tint);
+    ctx.globalCompositeOperation = operation; // Apply tint
+    ctx.fillStyle = fillStyle;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     this.materials[cookingIndex].map.needsUpdate = true; // Update the texture
   }

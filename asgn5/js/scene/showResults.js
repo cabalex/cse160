@@ -174,6 +174,7 @@ export default function showResults(
     resultBody.innerText += " \nOUT THE WINDOW! +50% bonus!";
   }
   resultScore.innerText = "$" + price.toFixed(2);
+  resultScore.className = price <= 0 ? "trash" : "";
   if (checkHighScore(price)) {
     highScore.innerText =
       "$" +

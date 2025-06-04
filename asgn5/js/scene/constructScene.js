@@ -253,12 +253,9 @@ export default async function constructScene(scene) {
   overheadLightObj.position.set(0, 2, 0);
   scene.add(overheadLightObj);
 
-  const cameraLight = new THREE.PointLight(0xffffff, 0.5);
+  const cameraLight = new THREE.PointLight(0xffffcc, 0.1, 100);
   cameraLight.name = "cameraLight";
   cameraLight.position.set(0, 1, 4);
-  cameraLight.castShadow = true;
-  cameraLight.shadow.mapSize.width = 1024;
-  cameraLight.shadow.mapSize.height = 1024;
   scene.add(cameraLight);
 
   await new Promise((resolve) => {

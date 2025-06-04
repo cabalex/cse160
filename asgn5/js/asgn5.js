@@ -20,6 +20,12 @@ const renderer = new THREE.WebGLRenderer();
 renderer.shadowMap.enabled = true;
 renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
+// better colors
+THREE.ColorManagement.enabled = true;
+THREE.ColorManagement.legacyMode = false;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;

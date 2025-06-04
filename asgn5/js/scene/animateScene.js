@@ -9,12 +9,14 @@ document.body.appendChild(stats.dom);
 export default function animateScene(scene, camera, renderer, world) {
   const overheadLight = scene.getObjectByName("overheadLight");
   const stoveLight = scene.getObjectByName("stoveLight");
+  const cameraLight = scene.getObjectByName("cameraLight");
   const pan = scene.getObjectByName("pan");
   const steak = scene.getObjectByName("steak");
   const particles = scene.getObjectByName("particles");
   const rainParticles = scene.getObjectByName("rainParticles");
   const cookBarElement = document.getElementById("cook-bar-progress");
   const cookBarLabel = document.getElementById("cook-bar-label");
+  const clock = new THREE.Clock();
 
   /*
   // debug pan to see if collider is being constructed correctly
@@ -49,12 +51,13 @@ export default function animateScene(scene, camera, renderer, world) {
     //debugMesh.quaternion.copy(pan.rigidBody.rotation());
 
     // physics
+    world.timestep = Math.min(clock.getDelta(), 0.1);
     world.step();
     steak.position.copy(steak.rigidBody.translation());
     steak.quaternion.copy(steak.rigidBody.rotation());
 
     if (steak.position.y < -1) {
-      const windowBonus = steak.position.z > 1;
+      const windowBonus = steak.position.z < -1;
       showResults(
         [...steak.cooked],
         steak.maxCooking,
@@ -103,6 +106,25 @@ export default function animateScene(scene, camera, renderer, world) {
 
     pan.position.copy(pan.rigidBody.translation());
     pan.quaternion.copy(pan.rigidBody.rotation());
+
+    // position camera light between camera and pan
+    cameraLight.position.copy(steak.position);
+    cameraLight.lookAt(camera.position);
+    cameraLight.updateMatrixWorld();
+
+    const q = new THREE.Quaternion().setFromEuler(cameraLight.rotation);
+    const v = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+
+    const offset = -0.5; // world units
+    cameraLight.position.add(v.multiplyScalar(offset));
+    cameraLight.intensity =
+      cameraLight.position.y < 0.5 ||
+      Math.max(
+        Math.abs(cameraLight.position.x),
+        Math.abs(cameraLight.position.z)
+      ) > 1
+        ? 0
+        : 0.1; // disable light if too low
 
     const t = performance.now() / 1000;
     overheadLight.position.x = Math.sin(t * 2) / 16;

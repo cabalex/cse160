@@ -139,6 +139,30 @@
     }
     #result-score {
       font-size: 48px;
+      position: relative;
+    }
+    #result-score.trash:after {
+      content: "TRASH";
+      background-color: #f44336;
+      font-size: 32px;
+      padding: 5px 10px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-10deg);
+      animation: trashLabel 0.2s ease-out;
+      animation-delay: 0.5s;
+      animation-fill-mode: backwards;
+    }
+    @keyframes trashLabel {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(20deg) scale(2);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(-10deg) scale(1);
+      }
     }
     /* Cube in CSS */
     .cube-scene {
@@ -220,7 +244,7 @@
         <p>
           This submission fulfills all requirements (including the 20 primary
           shapes requirement, through the use of many 3D models and primitive
-          set dressing). There are four lights in this scene - can you spot them
+          set dressing). There are five lights in this scene - can you spot them
           all?
         </p>
         <p>Additionally, this game has:</p>
@@ -238,6 +262,11 @@
             <b>Dynamically changing graphics:</b> The cube visually changes as
             you cook each side, thanks to <code>CanvasTexture</code>s built into
             THREE.js.
+          </li>
+          <li>
+            <b>Dynamically changing lighting:</b> The stove flickers, the
+            overhead lamp swings back and forth... there's even a light attached
+            to the cube that helps you see its texture better!
           </li>
           <li>
             <b>Smoking effects,</b> using <code>PointGeometry</code> - don't
